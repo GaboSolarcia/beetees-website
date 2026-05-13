@@ -1,13 +1,12 @@
 import "dotenv/config";
 import { PrismaClient } from "@prisma/client";
-import { PrismaLibSQL } from "@prisma/adapter-libsql";
-import { createClient } from "@libsql/client";
+import { PrismaLibSql } from "@prisma/adapter-libsql";
 import bcrypt from "bcryptjs";
-import path from "path";
 
-const dbPath = path.resolve(process.cwd(), "prisma", "dev.db");
-const libsql = createClient({ url: `file:${dbPath}` });
-const adapter = new PrismaLibSQL(libsql);
+const adapter = new PrismaLibSql({
+  url: process.env.DATABASE_URL!,
+  authToken: process.env.TURSO_AUTH_TOKEN,
+});
 const prisma = new PrismaClient({ adapter } as any);
 
 async function main() {
