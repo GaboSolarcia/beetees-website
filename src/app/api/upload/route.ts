@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/auth";
 import { put } from "@vercel/blob";
+import sharp from "sharp";
 
 export async function POST(req: NextRequest) {
   const session = await requireAdmin();
@@ -16,10 +17,19 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Invalid file type. Use JPG, PNG, WebP, or GIF." }, { status: 400 });
   }
 
-  const ext = file.name.split(".").pop();
-  const filename = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+  const bytes = await file.arrayBuffer();
+  const buffer = Buffer.from(bytes);
 
-  const blob = await put(filename, file, { access: "public" });
+  const compressed = await sharp(buffer)
+    .resize({ width: 1920, withoutEnlargement: true })
+    .webp({ quality: 80 })
+    .toBuffer();
+
+  const filename = `${Date.now()}-${Math.random().toString(36).slice(2)}.webp`;
+  const blob = await put(filename, compressed, {
+    access: "public",
+    contentType: "image/webp",
+  });
 
   return NextResponse.json({ url: blob.url });
 }
