@@ -4,14 +4,9 @@ import Image from "next/image";
 import { notFound } from "next/navigation";
 import ProductCard from "@/components/shop/ProductCard";
 
-export const revalidate = 30;
+export const dynamic = 'force-dynamic';
 
 type Params = { params: Promise<{ slug: string }> };
-
-export async function generateStaticParams() {
-  const artists = await prisma.artist.findMany({ select: { slug: true } });
-  return artists.map((a) => ({ slug: a.slug }));
-}
 
 export default async function ArtistPage({ params }: Params) {
   const { slug } = await params;

@@ -4,7 +4,7 @@ import Image from "next/image";
 import ProductCard from "@/components/shop/ProductCard";
 import { Calendar, MapPin } from "lucide-react";
 
-export const revalidate = 30;
+export const dynamic = 'force-dynamic';
 
 export default async function EventsPage() {
   const events = await prisma.event.findMany({

@@ -2,7 +2,7 @@ import { prisma } from "@/lib/db";
 import Navbar from "@/components/shop/Navbar";
 import ProductCard from "@/components/shop/ProductCard";
 
-export const revalidate = 30;
+export const dynamic = 'force-dynamic';
 
 export default async function ShopPage() {
   const products = await prisma.product.findMany({

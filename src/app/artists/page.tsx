@@ -3,7 +3,7 @@ import Navbar from "@/components/shop/Navbar";
 import Image from "next/image";
 import Link from "next/link";
 
-export const revalidate = 30;
+export const dynamic = 'force-dynamic';
 
 export default async function ArtistsPage() {
   const artists = await prisma.artist.findMany({

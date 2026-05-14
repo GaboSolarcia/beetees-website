@@ -3,7 +3,7 @@ import Navbar from "@/components/shop/Navbar";
 import HeroCarousel from "@/components/shop/HeroCarousel";
 import ArtistSection from "@/components/shop/ArtistSection";
 
-export const revalidate = 30;
+export const dynamic = 'force-dynamic';
 
 export default async function Home() {
   const artists = await prisma.artist.findMany({
