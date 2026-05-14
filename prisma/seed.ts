@@ -7,6 +7,7 @@ const adapter = new PrismaLibSql({
   url: process.env.DATABASE_URL!,
   authToken: process.env.TURSO_AUTH_TOKEN,
 });
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const prisma = new PrismaClient({ adapter } as any);
 
 async function main() {
