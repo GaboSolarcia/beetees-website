@@ -5,18 +5,23 @@ import { hashPassword, createCustomerToken } from "@/lib/customerAuth";
 export async function POST(req: NextRequest) {
   const { name, email, password, phone } = await req.json();
 
-  if (!name || !email || !password) {
-    return NextResponse.json({ error: "Nombre, correo y contraseña son requeridos" }, { status: 400 });
+  if (!name || !email || !password || !phone) {
+    return NextResponse.json({ error: "Nombre, correo, teléfono y contraseña son requeridos" }, { status: 400 });
   }
 
-  const existing = await prisma.customer.findUnique({ where: { email } });
-  if (existing) {
+  const existingEmail = await prisma.customer.findUnique({ where: { email } });
+  if (existingEmail) {
     return NextResponse.json({ error: "Ya existe una cuenta con ese correo" }, { status: 409 });
+  }
+
+  const existingPhone = await prisma.customer.findUnique({ where: { phone } });
+  if (existingPhone) {
+    return NextResponse.json({ error: "Ya existe una cuenta con ese número de teléfono" }, { status: 409 });
   }
 
   const hashed = await hashPassword(password);
   const customer = await prisma.customer.create({
-    data: { name, email, password: hashed, phone: phone || null },
+    data: { name, email, password: hashed, phone },
   });
 
   const token = await createCustomerToken({ id: customer.id, email: customer.email, name: customer.name });
