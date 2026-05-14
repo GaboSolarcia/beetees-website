@@ -102,7 +102,7 @@ export default function ArtistForm({ initial }: Props) {
           <select
             value={isActive ? "1" : "0"}
             onChange={(e) => setIsActive(e.target.value === "1")}
-            className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-yellow-400 transition-colors"
+            className="w-full bg-zinc-800 border border-white/20 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-yellow-400 transition-colors"
           >
             <option value="1">Activo (visible)</option>
             <option value="0">Inactivo (oculto)</option>
