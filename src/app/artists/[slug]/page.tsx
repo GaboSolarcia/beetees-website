@@ -30,7 +30,7 @@ export default async function ArtistPage({ params }: Params) {
       <main className="pt-16 min-h-screen bg-black">
         <div className="relative h-64 sm:h-96">
           {artist.coverImage ? (
-            <Image src={artist.coverImage} alt={artist.name} fill className="object-cover" />
+            <Image src={artist.coverImage} alt={artist.name} fill className="object-cover object-top" />
           ) : (
             <div className="w-full h-full bg-gradient-to-br from-zinc-800 to-zinc-900" />
           )}

@@ -26,7 +26,7 @@ export default function ArtistSection({ artist }: { artist: Artist }) {
         <div className="flex items-center gap-6 mb-10">
           {artist.coverImage && (
             <div className="relative w-20 h-20 rounded-full overflow-hidden border-2 border-yellow-400 flex-shrink-0">
-              <Image src={artist.coverImage} alt={artist.name} fill className="object-cover" />
+              <Image src={artist.coverImage} alt={artist.name} fill className="object-cover object-top" />
             </div>
           )}
           <div>

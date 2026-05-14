@@ -26,7 +26,7 @@ export default function HeroCarousel({ artists }: { artists: Artist[] }) {
                 src={artist.coverImage}
                 alt={artist.name}
                 fill
-                className="object-cover"
+                className="object-cover object-top"
                 priority
               />
             ) : (

@@ -27,7 +27,7 @@ export default async function ArtistsPage() {
               <Link key={artist.id} href={`/artists/${artist.slug}`} className="group">
                 <div className="relative h-72 rounded-2xl overflow-hidden border border-white/10 group-hover:border-yellow-400/50 transition-all duration-300">
                   {artist.coverImage ? (
-                    <Image src={artist.coverImage} alt={artist.name} fill className="object-cover group-hover:scale-105 transition-transform duration-500" />
+                    <Image src={artist.coverImage} alt={artist.name} fill className="object-cover object-top group-hover:scale-105 transition-transform duration-500" />
                   ) : (
                     <div className="w-full h-full bg-gradient-to-br from-zinc-800 to-zinc-900" />
                   )}
