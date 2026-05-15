@@ -3,12 +3,12 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import ImageUploader from "./ImageUploader";
 import { toast } from "sonner";
-import { X, Star } from "lucide-react";
+import { X, Star, Check, Pencil } from "lucide-react";
 import Image from "next/image";
 
 const CATEGORIES = ["Camiseta", "Hoodie", "Gorra", "Bolso", "Accesorio", "Otro"];
 
-type ProductImage = { id: string; url: string; isPrimary: boolean; order: number };
+type ProductImage = { id: string; url: string; isPrimary: boolean; order: number; colorLabel: string | null };
 
 type Props = {
   artists: { id: string; name: string }[];
@@ -39,6 +39,9 @@ export default function ProductForm({ artists, initial, defaultArtistId }: Props
   const [order, setOrder] = useState(initial?.order ?? 0);
   const [images, setImages] = useState<ProductImage[]>(initial?.images ?? []);
   const [saving, setSaving] = useState(false);
+  const [uploadColor, setUploadColor] = useState("");
+  const [editingColorId, setEditingColorId] = useState<string | null>(null);
+  const [editingColorValue, setEditingColorValue] = useState("");
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -79,11 +82,12 @@ export default function ProductForm({ artists, initial, defaultArtistId }: Props
     const res = await fetch(`/api/products/${initial.id}/images`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ url, isPrimary, order: images.length }),
+      body: JSON.stringify({ url, isPrimary, order: images.length, colorLabel: uploadColor.trim() || null }),
     });
     if (res.ok) {
       const img = await res.json();
       setImages((prev) => [...prev, img]);
+      setUploadColor("");
       toast.success("Imagen agregada");
     }
   }
@@ -103,6 +107,26 @@ export default function ProductForm({ artists, initial, defaultArtistId }: Props
     await fetch(`/api/products/${initial.id}/images?imageId=${imageId}`, { method: "DELETE" });
     setImages((prev) => prev.filter((img) => img.id !== imageId));
     toast.success("Imagen eliminada");
+  }
+
+  function startEditingColor(img: ProductImage) {
+    setEditingColorId(img.id);
+    setEditingColorValue(img.colorLabel ?? "");
+  }
+
+  async function saveColorLabel(imageId: string) {
+    if (!initial) return;
+    const res = await fetch(`/api/products/${initial.id}/images`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ imageId, colorLabel: editingColorValue.trim() }),
+    });
+    if (res.ok) {
+      const updated = await res.json();
+      setImages((prev) => prev.map((img) => img.id === imageId ? { ...img, colorLabel: updated.colorLabel } : img));
+      setEditingColorId(null);
+      toast.success("Color actualizado");
+    }
   }
 
   return (
@@ -215,43 +239,93 @@ export default function ProductForm({ artists, initial, defaultArtistId }: Props
             <span className="text-white/40 text-sm font-normal ml-2">({images.length} fotos)</span>
           </h2>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-6">
             {images.map((img) => (
-              <div key={img.id} className="relative group rounded-xl overflow-hidden border border-white/20">
-                <div className="relative h-32">
-                  <Image src={img.url} alt="producto" fill className="object-cover" />
-                </div>
-                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                  {!img.isPrimary && (
+              <div key={img.id} className="rounded-xl overflow-hidden border border-white/20">
+                <div className="relative group">
+                  <div className="relative h-32">
+                    <Image src={img.url} alt="producto" fill className="object-cover" />
+                  </div>
+                  <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                    {!img.isPrimary && (
+                      <button
+                        onClick={() => handleSetPrimary(img.id)}
+                        className="bg-yellow-400 text-black p-1.5 rounded-lg"
+                        title="Hacer principal"
+                      >
+                        <Star size={14} />
+                      </button>
+                    )}
                     <button
-                      onClick={() => handleSetPrimary(img.id)}
-                      className="bg-yellow-400 text-black p-1.5 rounded-lg"
-                      title="Hacer principal"
+                      onClick={() => handleDeleteImage(img.id)}
+                      className="bg-red-500 text-white p-1.5 rounded-lg"
                     >
-                      <Star size={14} />
+                      <X size={14} />
+                    </button>
+                  </div>
+                  {img.isPrimary && (
+                    <div className="absolute top-1.5 left-1.5 bg-yellow-400 text-black text-xs px-1.5 py-0.5 rounded-full font-bold flex items-center gap-1">
+                      <Star size={9} /> Principal
+                    </div>
+                  )}
+                </div>
+
+                {/* Color label row */}
+                <div className="bg-zinc-900 px-2 py-1.5">
+                  {editingColorId === img.id ? (
+                    <div className="flex items-center gap-1">
+                      <input
+                        autoFocus
+                        value={editingColorValue}
+                        onChange={(e) => setEditingColorValue(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") saveColorLabel(img.id);
+                          if (e.key === "Escape") setEditingColorId(null);
+                        }}
+                        placeholder="Ej: Negro"
+                        className="flex-1 bg-white/10 text-white text-xs px-2 py-1 rounded-lg focus:outline-none focus:ring-1 focus:ring-yellow-400 placeholder-white/30 min-w-0"
+                      />
+                      <button onClick={() => saveColorLabel(img.id)} className="text-yellow-400 hover:text-yellow-300 flex-shrink-0">
+                        <Check size={13} />
+                      </button>
+                      <button onClick={() => setEditingColorId(null)} className="text-white/40 hover:text-white flex-shrink-0">
+                        <X size={13} />
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => startEditingColor(img)}
+                      className="flex items-center gap-1 text-xs text-white/40 hover:text-white/70 transition-colors w-full group/color"
+                    >
+                      <Pencil size={10} className="flex-shrink-0" />
+                      <span className={img.colorLabel ? "text-white/70" : "italic"}>
+                        {img.colorLabel || "Sin color"}
+                      </span>
                     </button>
                   )}
-                  <button
-                    onClick={() => handleDeleteImage(img.id)}
-                    className="bg-red-500 text-white p-1.5 rounded-lg"
-                  >
-                    <X size={14} />
-                  </button>
                 </div>
-                {img.isPrimary && (
-                  <div className="absolute top-1.5 left-1.5 bg-yellow-400 text-black text-xs px-1.5 py-0.5 rounded-full font-bold flex items-center gap-1">
-                    <Star size={9} /> Principal
-                  </div>
-                )}
               </div>
             ))}
           </div>
 
-          <ImageUploader
-            onUpload={handleImageUpload}
-            label="Agregar imagen al producto"
-          />
-          <p className="text-white/30 text-xs mt-2">La primera imagen agregada será la principal. Puedes cambiarla haciendo clic en la estrella.</p>
+          <div className="space-y-3">
+            <div>
+              <label className="block text-sm text-white/70 mb-1.5 font-medium">
+                Color de la imagen a subir <span className="text-white/30 font-normal">(opcional)</span>
+              </label>
+              <input
+                value={uploadColor}
+                onChange={(e) => setUploadColor(e.target.value)}
+                placeholder="Ej: Negro, Blanco, Rojo..."
+                className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-2.5 text-white placeholder-white/30 focus:outline-none focus:border-yellow-400 transition-colors text-sm"
+              />
+            </div>
+            <ImageUploader
+              onUpload={handleImageUpload}
+              label="Agregar imagen al producto"
+            />
+          </div>
+          <p className="text-white/30 text-xs mt-2">La primera imagen será la principal. Haz clic en la estrella para cambiarla. Asigna un color para mostrar el selector en la tienda.</p>
         </div>
       )}
     </div>
